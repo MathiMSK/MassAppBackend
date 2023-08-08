@@ -203,7 +203,8 @@ export const getGroupChatbyId = async (req, res) => {
       .populate({
         path: "messages",
         populate: { path: "sendby", select: "_id username" },
-      });
+      })
+      .populate("lastMessage")
     if (!chats) {
       return res.status(400).json({ message: "Chats not found" });
     }
@@ -222,6 +223,7 @@ export const getGroupChatbyId = async (req, res) => {
         updatedAt: chat.updatedAt,
         groupDp: chat.groupDp,
         isGroup: chat.isGroup,
+        lastMessage: chat.lastMessage,
       };
     });
     return res.status(200).json(chat);
