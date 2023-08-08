@@ -9,6 +9,7 @@ import user from "./routers/userRouter.routes.js";
 import video from "./routers/videoRouter.routes.js";
 import chat from "./routers/chatRouter.routes.js";
 import message from "./routers/messageRouter.routes.js";
+import Chat from "./models/chatModel.js";
 
 dotenv.config();
 const app = express();
@@ -52,8 +53,8 @@ io.on("connection", (socket) => {
   console.log("Connected to socket.io");
 
   socket.on("setup",(userData) => {
-    socket.join(userData.id);
-    console.log(`A user Connected ${userData.id}`);
+    socket.join(userData?.id);
+    console.log(`A user Connected ${userData?.id}`);
     socket.emit("connected");
   });
 
@@ -62,12 +63,12 @@ io.on("connection", (socket) => {
     // console.log(`A user joined a chat ${room}`);
   });
 
-  socket.on("new message", (newMessageRecieved) => {
-    var chat = newMessageRecieved.data.lastMessage;
-    if (!chat) return console.log("Chat.users not defined");
-    newMessageRecieved?.data?.users?.forEach((user) => {
-      if (user._id == chat) return;
-      socket.in(user._id).emit("message recieved", newMessageRecieved);
+  socket.on("new message", async(newMessageRecieved) => {
+    var chat = await Chat.findById(newMessageRecieved?.data._id).populate("users").populate("lastMessage");
+    if (!chat) return console.log("Chat not defined");
+    chat?.users?.forEach((user) => {
+      if (user?._id?.toString() == chat?.lastMessage?.sendby?.toString()) return;
+      socket.in(user?._id).emit("message recieved", newMessageRecieved);
     });
   })
 
