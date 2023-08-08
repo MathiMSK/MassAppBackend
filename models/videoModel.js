@@ -34,12 +34,12 @@ const videoSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
-    dislikes: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
+    // dislikes: [
+    //   {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: "User",
+    //   },
+    // ],
     comments: [
       {
         text: String,

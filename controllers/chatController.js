@@ -18,7 +18,7 @@ export const createSingleChat = async (req, res) => {
         .status(400)
         .json({ message: "You can't create a chat with yourself" });
     }
-    const chat = await Chat.findOne({ users: { $all: users } });
+    const chat = await Chat.findOne({ users:users ,isGroup: false });
     if (chat) {
       return res
         .status(400)
