@@ -278,15 +278,15 @@ export const addGroupAdmin = async (req, res) => {
 
 export const removeGroupAdmin = async (req, res) => {
   const groupId = req.params.id;
-  const { userId } = req.body;
+  const userId  = req.body.userId;
   try {
     const chat = await Chat.findById(groupId);
-    const index = chat.groupAdmin.indexOf(userId);
-    chat.groupAdmin.splice(index, 1);
+    const iterator = userId.values();
+    for (const data of iterator) {
+      chat?.groupAdmin?.pull(data);
+    }
     await chat.save();
-    return res
-      .status(200)
-      .json({ message: "Group admin removed successfully" });
+    return res.status(200).json({ message: "Group admin removed successfully" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -303,7 +303,6 @@ export const addGroupUser = async (req, res) => {
     return res.status(400).json({ message: "User already added" });
   }
   try {
-    const chat = await Chat.findById(groupId);
     const iterator = userId.values();
     for (const data of iterator) {
       chat?.users?.push(data);
