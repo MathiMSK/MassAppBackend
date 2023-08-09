@@ -121,6 +121,7 @@ export const getChatbyId = async (req, res) => {
         users: usering,
         messages: chat.messages,
         groupDp: chat.groupDp,
+        groupAdmin:chat.groupAdmin
       };
     });
     return res.status(200).json(chats);
@@ -204,7 +205,8 @@ export const getGroupChatbyId = async (req, res) => {
         path: "messages",
         populate: { path: "sendby", select: "_id username" },
       })
-      .populate("lastMessage");
+      .populate("lastMessage")
+      .populate("groupAdmin","username")
     if (!chats) {
       return res.status(400).json({ message: "Chats not found" });
     }
@@ -215,9 +217,11 @@ export const getGroupChatbyId = async (req, res) => {
       if (chat.isGroup === true) {
         usering = chat.users.filter((user) => user._id.toString() !== userId);
       }
+      console.log(chats);
       return {
         _id: chat._id,
         users: usering,
+        groupAdmin:chat.groupAdmin,
         groupName: chat.groupName,
         messages: chat.messages,
         updatedAt: chat.updatedAt,
@@ -266,7 +270,7 @@ export const addGroupAdmin = async (req, res) => {
     const chat = await Chat.findById(groupId);
     chat.groupAdmin.push(userId);
     await chat.save();
-    return res.status(200).json({ message: "Group admin added successfully" });
+    return res.status(200).json({ message: "Group admin added successfully",chat:chat });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
