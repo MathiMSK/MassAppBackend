@@ -51,8 +51,8 @@ export const updateMessage = async (req, res) => {
 };
 
 export const deleteMessage = async (req, res) => {
-  const { chatId } = req.params;
-  const { messageId } = req.query;
+  const chatId = req.params.id;
+  const messageId  = req.query.messageId;
   try {
     const chat = await Chat.findById(chatId);
     if (!chat) {
