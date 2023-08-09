@@ -18,7 +18,7 @@ export const createSingleChat = async (req, res) => {
         .status(400)
         .json({ message: "You can't create a chat with yourself" });
     }
-    const chat = await Chat.findOne({ users:users ,isGroup: false });
+    const chat = await Chat.findOne({ users: users, isGroup: false });
     if (chat) {
       return res
         .status(400)
@@ -204,7 +204,7 @@ export const getGroupChatbyId = async (req, res) => {
         path: "messages",
         populate: { path: "sendby", select: "_id username" },
       })
-      .populate("lastMessage")
+      .populate("lastMessage");
     if (!chats) {
       return res.status(400).json({ message: "Chats not found" });
     }
@@ -319,10 +319,10 @@ export const removeGroupUser = async (req, res) => {
     if (userId === req.user.id) {
       return res.status(400).json({ message: "You can't remove yourself" });
     }
-    const chat= await Chat.findByIdAndUpdate(groupId);
+    const chat = await Chat.findByIdAndUpdate(groupId);
     if (!chat) {
       return res.status(400).json({ message: "Chat not found" });
-    };
+    }
     const iterator = userId.values();
     for (const data of iterator) {
       chat?.users?.pull(data);
@@ -334,7 +334,6 @@ export const removeGroupUser = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
-
 
 export const addMessage = async (req, res) => {
   const message = req.body.message;
