@@ -3,7 +3,6 @@ import bodyParser from "body-parser";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
-import http from "http";
 import { Server } from "socket.io";
 import user from "./routers/userRouter.routes.js";
 import video from "./routers/videoRouter.routes.js";
@@ -49,14 +48,31 @@ const io = new Server(server, {
   },
 });
 
+let users=[]
+
+const addUser = (userId, socketId) => {
+  !users.some((user) => user.userId === userId) &&
+  users.push({ userId, socketId });
+};
+
+const removeUser=(socketId)=>{
+  users=users.filter(user=>user.socketId!==socketId)
+}
+
 io.on("connection", (socket) => {
-  console.log("Connected to socket.io");
+  // console.log("Connected to socket.io");
 
   socket.on("setup",(userData) => {
     socket.join(userData?.id);
-    console.log(`A user Connected ${userData?.id}`);
+    // console.log(`A user Connected ${userData?.id}`);
     socket.emit("connected");
   });
+
+  socket.on("addUser",(user)=>{
+    addUser(user,socket.id)
+    io.emit("getUser",users)
+  })
+
 
   socket.on("join chat", (room) => {
     socket.join(room)
@@ -64,19 +80,21 @@ io.on("connection", (socket) => {
   });
 
   socket.on("new message", async(newMessageRecieved) => {
-    var chat = await Chat.findById(newMessageRecieved?.data._id).populate("users").populate("lastMessage");
-    if (!chat) return console.log("Chat not defined");
-    chat?.users?.forEach((user) => {
-      if (user?._id?.toString() == chat?.lastMessage?.sendby?.toString()) return;
-      socket.in(user?._id).emit("message recieved", newMessageRecieved);
+    var chat = await Chat.findById(newMessageRecieved?.data?._id).populate("users").populate("lastMessage")
+    .populate({ path: "lastMessage", populate: { path: "sendby", select: "_id username" } });
+      
+    if (!chat) return console.log("Chat not defined"); 
+    chat?.users?.forEach((user) => { 
+      if (user?._id?.toString() == chat?.lastMessage?.sendby?._id?.toString()) return;  
+      let founSocketId = users.find((item)=>item.userId == user?._id?.toString()) 
+      if(!founSocketId)  return; 
+      io.to(founSocketId?.socketId).emit("message recieved", chat);
     });
+  })  
+  
+  socket.on("disconnect", () => {
+    // console.log("A user has disconnected");
+    removeUser(socket.id)
+    io.emit("getUsers", users);0
   })
-
-  // socket.on("typing", (room) => socket.in(room).emit("typing"));
-  // socket.on("stop typing", (room) => socket.in(room).emit("stop typing"));
-  // socket.on("disconnect", () => console.log("Disconnected from socket.io"));
-  // socket.off("setup", () => {
-  //   console.log("USER DISCONNECTED");
-  //   socket.leave(userData._id);
-  // });
 });

@@ -43,10 +43,12 @@ export const getChatbyuser = async (req, res) => {
     const chats = await Chat.find({ users: userId })
       .populate("users", "name lastname username profilePicture")
       .populate("messages", "message sendby createdAt")
+      .populate("lastMessage")
       .populate({
         path: "messages",
         populate: { path: "sendby", select: "_id username" },
-      });
+      })
+      .populate("groupAdmin","username")
     if (!chats) {
       return res.status(400).json({ message: "Chats not found" });
     }
@@ -61,11 +63,14 @@ export const getChatbyuser = async (req, res) => {
       return {
         _id: chat._id,
         users: usering,
+        groupCreator:chat.groupCreator,
+        groupAdmin:chat.groupAdmin,
         groupName: chat.groupName,
         messages: chat.messages,
         updatedAt: chat.updatedAt,
         groupDp: chat.groupDp,
         isGroup: chat.isGroup,
+        lastMessage: chat.lastMessage,
       };
     });
     return res.status(200).json(chat);
@@ -167,7 +172,8 @@ export const getGroupChatbyUser = async (req, res) => {
       .populate({
         path: "messages",
         populate: { path: "sendby", select: "_id username" },
-      });
+      })
+      .populate("groupAdmin")
     if (!chats) {
       return res.status(400).json({ message: "Chats not found" });
     }
@@ -181,6 +187,7 @@ export const getGroupChatbyUser = async (req, res) => {
       return {
         _id: chat._id,
         users: usering,
+        groupAdmin:chat.groupAdmin,
         groupName: chat.groupName,
         messages: chat.messages,
         updatedAt: chat.updatedAt,
@@ -193,6 +200,7 @@ export const getGroupChatbyUser = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+
 
 export const getGroupChatbyId = async (req, res) => {
   const chatId = req.params.id;
