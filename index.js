@@ -86,7 +86,7 @@ io.on("connection", (socket) => {
       
     if (!chat) return console.log("Chat not defined"); 
     chat?.users?.forEach((user) => { 
-      if (user?._id?.toString() == chat?.lastMessage?.sendby?._id?.toString()) return;  
+      // if (user?._id?.toString() == chat?.lastMessage?.sendby?._id?.toString()) return;  
       let founSocketId = users.find((item)=>item.userId == user?._id?.toString()) 
       if(!founSocketId)  return; 
       console.log(founSocketId)
