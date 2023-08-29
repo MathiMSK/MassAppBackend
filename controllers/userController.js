@@ -25,7 +25,7 @@ export const reg = async (req, res) => {
   });
   if (exName) return res.status(400).json({ message: "Username already exists. Please Try Another" });
 
-  bcrypt.hash(req.body.password, saltRounds, async (err, hash) => {x
+  bcrypt.hash(req.body.password, saltRounds, async (err, hash) => {
     try {
       let register = new User({
         username: username,

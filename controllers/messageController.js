@@ -46,7 +46,7 @@ export const updateMessage = async (req, res) => {
     );
     if (!messageUpdate) {
       return res.status(400).json({ message: "Message not found" });
-    }
+    } 
     return res.status(200).json({ message: "Message updated successfully" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -85,7 +85,7 @@ export const getMessage = async (req, res) => {
   }
 };                                                     
 
-export const read= async (req,res)=>{
+export const read= async (req,res)=>{ 
   const chatId = req.params.id;
   try {
     const message = await Chat.findById(chatId)
@@ -96,10 +96,11 @@ export const read= async (req,res)=>{
       }else if(i.readBy.includes(req.user.id)){
         return
       }
-      let add = await Message.findByIdAndUpdate({_id:i._id},{$push:{readBy:req.user.id}},{new:true})
-      res.status(200).send({data:add,message:"message is read"}) 
+      await Message.findByIdAndUpdate({_id:i._id},{$push:{readBy:req.user.id}},{new:true})
     })
+    res.status(200).send({message:"message is read"}) 
   } catch (error) {
     return res.status(500).json({ message:error.message });
   }
 }
+

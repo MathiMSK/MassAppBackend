@@ -55,16 +55,17 @@ const addUser = (userId, socketId) => {
   users.push({ userId, socketId });
 };
 
+
 const removeUser=(socketId)=>{
   users=users.filter(user=>user.socketId!==socketId)
 }
 
 io.on("connection", (socket) => {
-  // console.log("Connected to socket.io");
+  console.log("Connected to socket.io");
 
   socket.on("setup",(userData) => {
     socket.join(userData?.id);
-    // console.log(`A user Connected ${userData?.id}`);
+    console.log(`A user Connected ${userData?.id}`);
     socket.emit("connected");
   });
 
@@ -76,7 +77,7 @@ io.on("connection", (socket) => {
 
   socket.on("join chat", (room) => {
     socket.join(room)
-    // console.log(`A user joined a chat ${room}`);
+    console.log(`A user joined a chat ${room}`);
   });
 
   socket.on("new message", async(newMessageRecieved) => {
@@ -85,15 +86,16 @@ io.on("connection", (socket) => {
       
     if (!chat) return console.log("Chat not defined"); 
     chat?.users?.forEach((user) => { 
-      if (user?._id?.toString() == chat?.lastMessage?.sendby?._id?.toString()) return;  
+      // if (user?._id?.toString() == chat?.lastMessage?.sendby?._id?.toString()) return;  
       let founSocketId = users.find((item)=>item.userId == user?._id?.toString()) 
       if(!founSocketId)  return; 
+      console.log(founSocketId)
       io.to(founSocketId?.socketId).emit("message recieved", chat);
     });
   })  
   
   socket.on("disconnect", () => {
-    // console.log("A user has disconnected");
+    console.log("A user has disconnected");
     removeUser(socket.id)
     io.emit("getUsers", users);0
   })
