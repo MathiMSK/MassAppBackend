@@ -35,6 +35,9 @@ export const createMessage = async (req, res) => {
 export const updateMessage = async (req, res) => {
   const chatId = req.params.id;
   const { message } = req.body;
+  if(!message){
+    return res.status(400).json({ message: "Message is required" });
+  } 
   try {
     const messageUpdate = await Message.findByIdAndUpdate(
       chatId,

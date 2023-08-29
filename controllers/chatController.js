@@ -97,9 +97,11 @@ export const getChat = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+
 export const getChatbyId = async (req, res) => {
   const chatId = req.params.id;
   const userId = req.user.id;
+
   try {
     const chat = await Chat.findById({ _id: chatId })
       .populate("users", "name lastname username profilePicture")
@@ -108,9 +110,11 @@ export const getChatbyId = async (req, res) => {
         path: "messages",
         populate: { path: "sendby", select: "_id username" },
       });
+
     if (!chat) {
       return res.status(400).json({ message: "Chat not found" });
     }
+
     let forMap = [];
     forMap.push(chat);
     let chats = forMap?.map((chat) => {
@@ -141,22 +145,24 @@ export const createGroup = async (req, res) => {
   const { groupName, users } = req.body;
   const groupCreator = req.user.id;
   let usersArray = [...users, groupCreator];
-  console.log(users);
-  if (users.length === 0)
-    return res.status(400).json({ message: "Please add atleast one user" });
+
+  if (users.length === 0) return res.status(400).json({ message: "Please add atleast one user" });
+  if(users.length > 19) return res.status(400).json({ message: "You can't add more than 20 users" });
+
   try {
     const group = await Chat.findOne({ groupName: groupName });
     if (group) {
       return res.status(400).json({ message: "Group name already exists" });
     }
+
     const chat = new Chat({
       groupName: groupName,
       groupCreator: groupCreator,
       users: usersArray,
       isGroup: true,
     });
-
     await chat.save();
+    
     return res.status(200).json({ message: "Group created successfully" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -177,8 +183,8 @@ export const getGroupChatbyUser = async (req, res) => {
     if (!chats) {
       return res.status(400).json({ message: "Chats not found" });
     }
-    // let forMap = [];
-    // forMap.push(chat);
+    let forMap = [];
+    forMap.push(chat);
     let chat = chats.map((chat) => {
       let usering;
       if (chat.isGroup === true) {
@@ -205,27 +211,28 @@ export const getGroupChatbyUser = async (req, res) => {
 export const getGroupChatbyId = async (req, res) => {
   const chatId = req.params.id;
   const userId = req.user.id;
+
   try {
     const chats = await Chat.findById(chatId, { isGroup: true })
       .populate("users", "name lastname username profilePicture")
       .populate("messages", "message sendby createdAt")
       .populate({
         path: "messages",
-        populate: { path: "sendby", select: "_id username" },
-      })
+        populate: { path: "sendby", select: "_id username" }})
       .populate("lastMessage")
-      .populate("groupAdmin","username")
+      .populate("groupAdmin","username");
+
     if (!chats) {
       return res.status(400).json({ message: "Chats not found" });
     }
     let forMap = [];
     forMap.push(chats);
+
     let chat = forMap?.map((chat) => {
       let usering;
       if (chat.isGroup === true) {
         usering = chat.users.filter((user) => user._id.toString() !== userId);
       }
-      console.log(chats);
       return {
         _id: chat._id,
         users: usering,
@@ -239,6 +246,7 @@ export const getGroupChatbyId = async (req, res) => {
       };
     });
     return res.status(200).json(chat);
+
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -247,6 +255,10 @@ export const getGroupChatbyId = async (req, res) => {
 export const updateGroupChat = async (req, res) => {
   const groupId = req.params.id;
   const { groupName, users } = req.body;
+
+  if(!groupName && !users){
+    return res.status(400).json({ message: "Please provide atleast one field" });
+  }
   try {
     const chat = await Chat.findById(groupId);
     chat.groupName = groupName;
@@ -274,6 +286,9 @@ export const updateDp = async (req, res) => {
 export const addGroupAdmin = async (req, res) => {
   const groupId = req.params.id;
   const { userId } = req.body;
+  if(!userId){
+    return res.status(400).json({ message: "Please add atleast one user" });
+  }
   try {
     const chat = await Chat.findById(groupId);
     chat.groupAdmin.push(userId);

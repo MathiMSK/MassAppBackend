@@ -84,7 +84,11 @@ export const updateVideoById = async (req, res) => {
 export const deleteVideoById = async (req, res) => {
   try {
     let video = await Video.findById(req.params.id);
+    if(!video){
+      return res.status(400).json({ message: "Video not found" });
+    }
     const public_id = video.public_id;
+
     cloudinary.api.delete_resources(
       public_id,
       function (result, error) {
@@ -92,8 +96,10 @@ export const deleteVideoById = async (req, res) => {
       },
       { resource_type: "video" }
     );
+
     let delVideo = await Video.findByIdAndDelete(req.params.id);
     res.status(200).json({ message: "Video deleted", delVideo });
+
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
